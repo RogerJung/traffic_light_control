@@ -7,10 +7,11 @@ carla 0.9.13
 
 ## Usage
 
+- Step 1:
 ```bash=
 ./CarlaUE4.sh -world-port=2000
 ```
-
+- Step 2:
 ```bash=
 python main.py
 ```
