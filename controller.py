@@ -2,6 +2,30 @@ import carla
 from pynput import keyboard
 import time
 
+
+light_state = carla.TrafficLightState.Red
+
+def on_press(key):
+    try:
+        pass
+    except AttributeError:
+        pass
+
+def on_release(key):
+    global light_state
+    try:
+        print(' \r', end="")
+        if key.char == 'r':
+            light_state = carla.TrafficLightState.Red
+            print("Set Traffic light to Red\n", end="")
+        elif key.char == 'g':
+            light_state = carla.TrafficLightState.Green
+            print("Set Traffic light to Green\n", end="")
+    except AttributeError:
+        if key == keyboard.Key.esc:
+            # Stop listener
+            return False
+
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 world = client.get_world()
@@ -33,35 +57,16 @@ print("| r : change light to red.   |")
 print("| g : change light to green. |")
 print("------------------------------")
 
-# for i in traffic_lights:
-#     i.set_red_time(5.0)
-#     i.set_green_time(5.0)
-#     i.set_yellow_time(2.0)
-    
 # traffic_lights[light_id].set_red_time(5.0)
 traffic_lights[light_id].set_green_time(5.0)
 traffic_lights[light_id].set_yellow_time(2.0)
 
+listener = keyboard.Listener(
+    on_press=on_press,
+    on_release=on_release)
+listener.start()
+
 while True:
-
-    with keyboard.Events() as events:
-        # Block at most one second
-        event = events.get(0.05)
-        if event is None:
-            pass
-        else:
-            try:
-                if type(event) == keyboard.Events.Release:
-                    print(' \r', end="")
-                    if event.key.char == 'r':
-                        if traffic_lights[light_id].get_state() == carla.TrafficLightState.Green:
-                            traffic_lights[light_id].set_state(carla.TrafficLightState.Red)
-                        print("Set Traffic light to Red\n", end="")
-                    elif event.key.char == 'g':
-                        if traffic_lights[light_id].get_state() == carla.TrafficLightState.Red:
-                            traffic_lights[light_id].set_state(carla.TrafficLightState.Green)
-                        print("Set Traffic light to Green\n", end="")
-            except AttributeError:
-                pass
-
+    traffic_lights[light_id].set_state(light_state)
+    time.sleep(0.5)
     world.tick()
