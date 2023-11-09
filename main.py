@@ -1,9 +1,16 @@
 import carla
 from pynput import keyboard
+import time
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 world = client.get_world()
+
+settings = world.get_settings()
+settings.synchronous_mode = True # Enables synchronous mode
+settings.fixed_delta_seconds = 0.05
+world.apply_settings(settings)
+
 light_manager = world.get_lightmanager()
 lights = light_manager.get_all_lights()
 
@@ -26,29 +33,36 @@ print("| r : change light to red.   |")
 print("| g : change light to green. |")
 print("------------------------------")
 
-traffic_lights[light_id].set_red_time(5.0)
-traffic_lights[light_id].set_green_time(5.0)
-traffic_lights[light_id].set_yellow_time(2.0)
+for i in traffic_lights:
+    i.set_red_time(5.0)
+    i.set_green_time(5.0)
+    i.set_yellow_time(2.0)
+    
+# traffic_lights[light_id].set_red_time(5.0)
+# traffic_lights[light_id].set_green_time(5.0)
+# traffic_lights[light_id].set_yellow_time(2.0)
 
 while True:
 
-    with keyboard.Events() as events:
-        # Block at most one second
-        event = events.get(1.0)
-        if event is None:
-            pass
-        else:
-            try:
-                if type(event) == keyboard.Events.Release:
-                    print(' \r', end="")
-                    if event.key.char == 'r':
-                        if traffic_lights[light_id].get_state() == carla.TrafficLightState.Green:
-                            traffic_lights[light_id].set_state(carla.TrafficLightState.Red)
-                        print("Set Traffic light to Red\n", end="")
-                    elif event.key.char == 'g':
-                        if traffic_lights[light_id].get_state() == carla.TrafficLightState.Red:
-                            traffic_lights[light_id].set_state(carla.TrafficLightState.Green)
-                        print("Set Traffic light to Green\n", end="")
-            except AttributeError:
-                pass
-
+    # with keyboard.Events() as events:
+    #     # Block at most one second
+    #     event = events.get(0.01)
+    #     if event is None:
+    #         pass
+    #     else:
+    #         try:
+    #             if type(event) == keyboard.Events.Release:
+    #                 print(' \r', end="")
+    #                 if event.key.char == 'r':
+    #                     if traffic_lights[light_id].get_state() == carla.TrafficLightState.Green:
+    #                         traffic_lights[light_id].set_state(carla.TrafficLightState.Red)
+    #                     print("Set Traffic light to Red\n", end="")
+    #                 elif event.key.char == 'g':
+    #                     if traffic_lights[light_id].get_state() == carla.TrafficLightState.Red:
+    #                         traffic_lights[light_id].set_state(carla.TrafficLightState.Green)
+    #                     print("Set Traffic light to Green\n", end="")
+    #         except AttributeError:
+    #             pass
+    
+    time.sleep(0.05)
+    world.tick()
