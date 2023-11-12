@@ -10,9 +10,13 @@ carla 0.9.13
 
 - Step 1:
 ```bash=
-./CarlaUE4.sh -world-port=2000
+bash ./script/download_map.sh
 ```
 - Step 2:
+```bash=
+./CarlaUE4.sh -world-port=2000
+```
+- Step 3:
 ```bash=
 python main.py
 ```
