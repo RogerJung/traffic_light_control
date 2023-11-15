@@ -1,3 +1,4 @@
+import random
 import carla
 from pynput import keyboard
 import time
@@ -35,6 +36,9 @@ def on_release(key):
             traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Green)
 
             print("Set Traffic light to Green\n", end="")
+        # elif key.char == '1':
+        #     print(spectator.get_transform())
+
     except AttributeError:
 
         # Using "TAB" to change perspective.
@@ -69,6 +73,8 @@ world.apply_settings(settings)
 
 traffic_lights = world.get_actors().filter("traffic.traffic_light")
 
+world.constant_velocity_enabled = True
+
 spectator = world.get_spectator()
 spectator.set_transform(carla.Transform(
     carla.Location(x=83.918785, y=106.423500, z=6.480291), 
@@ -95,10 +101,42 @@ listener = keyboard.Listener(
     on_release=on_release)
 listener.start()
 
-while listener:
+def main():
+    synchronous_master = True
+    try:
 
-    # print(f"light 0 : {traffic_lights[30].get_state()}    \
-    #         light 1 : {traffic_lights[31].get_state()}    \
-    #         light 2 : {traffic_lights[32].get_state()}")
-    
-    world.tick()
+        blueprint_library = world.get_blueprint_library()
+        ego_vehicle_bp = blueprint_library.find('vehicle.tesla.model3')
+        ego_vehicle_bp.set_attribute('color', '0, 0, 0')
+
+        transform = carla.Transform(carla.Location(x=87.991631, y=69.002403, z=1.0), 
+                                    carla.Rotation(pitch=12.049348, yaw=84.715179, roll=0.000388))
+        
+        # spawn npc vehicle
+        # ego_vehicle = world.spawn_actor(ego_vehicle_bp, transform)
+        # ego_vehicle.set_autopilot(True)
+
+        while True:
+            if synchronous_master:
+                world.tick()
+            else:
+                world.wait_for_tick()
+    finally:
+        # Turn off the sync. mode
+        if synchronous_master:
+            settings = world.get_settings()
+            settings.synchronous_mode = False
+            settings.fixed_delta_seconds = None
+            world.apply_settings(settings)
+        print('\rdestroying vehicles')
+        # ego_vehicle.destroy()
+        time.sleep(0.5)
+
+if __name__ == '__main__':
+
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print('done.')
