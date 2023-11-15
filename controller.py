@@ -2,8 +2,6 @@ import carla
 from pynput import keyboard
 import time
 
-
-light_state = carla.TrafficLightState.Red
 spec_id = 0
 
 def on_press(key):
@@ -13,23 +11,33 @@ def on_press(key):
         pass
 
 def on_release(key):
+
     global traffic_lights
     global spectator
     global spec_id
+
     try:
         print(' \r', end="")
         if key.char == 'r':
-            # light_state = carla.TrafficLightState.Red
-            for i in range(30, 33):
-                traffic_lights[i].set_state(carla.TrafficLightState.Red)
+            
+            # Pub red signal to spectated light.
+            traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Red)
+
             print("Set Traffic light to Red\n", end="")
         elif key.char == 'g':
-            # light_state = carla.TrafficLightState.Green
+
+            # Pub red signal to the other lights.
             for i in range(30, 33):
-                traffic_lights[i].set_state(carla.TrafficLightState.Red)
+                if i != spec_id + 30:
+                    traffic_lights[i].set_state(carla.TrafficLightState.Red)
+            
+            # Pub green signal to spectated light.
             traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Green)
+
             print("Set Traffic light to Green\n", end="")
     except AttributeError:
+
+        # Using "TAB" to change perspective.
         if key == keyboard.Key.tab:
             spec_id += 1
             if spec_id == 3:
@@ -87,11 +95,10 @@ listener = keyboard.Listener(
     on_release=on_release)
 listener.start()
 
-while True:
+while listener:
 
-    print(traffic_lights[30].get_state(), 
-          traffic_lights[31].get_state(), 
-          traffic_lights[32].get_state())
+    # print(f"light 0 : {traffic_lights[30].get_state()}    \
+    #         light 1 : {traffic_lights[31].get_state()}    \
+    #         light 2 : {traffic_lights[32].get_state()}")
     
-    time.sleep(0.1)
     world.tick()
