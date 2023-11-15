@@ -4,6 +4,7 @@ import time
 
 
 light_state = carla.TrafficLightState.Red
+spec_id = 0
 
 def on_press(key):
     try:
@@ -12,54 +13,74 @@ def on_press(key):
         pass
 
 def on_release(key):
-    global light_state
+    global traffic_lights
+    global spectator
+    global spec_id
     try:
         print(' \r', end="")
         if key.char == 'r':
-            light_state = carla.TrafficLightState.Red
+            # light_state = carla.TrafficLightState.Red
+            for i in range(30, 33):
+                traffic_lights[i].set_state(carla.TrafficLightState.Red)
             print("Set Traffic light to Red\n", end="")
         elif key.char == 'g':
-            light_state = carla.TrafficLightState.Green
+            # light_state = carla.TrafficLightState.Green
+            for i in range(30, 33):
+                traffic_lights[i].set_state(carla.TrafficLightState.Red)
+            traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Green)
             print("Set Traffic light to Green\n", end="")
     except AttributeError:
-        if key == keyboard.Key.esc:
+        if key == keyboard.Key.tab:
+            spec_id += 1
+            if spec_id == 3:
+                spec_id = 0
+            if spec_id == 0:
+                spectator.set_transform(carla.Transform(
+                    carla.Location(x=83.918785, y=106.423500, z=6.480291), 
+                    carla.Rotation(pitch=-25.652645, yaw=73.435905, roll=-0.000030)))
+            elif spec_id == 1:
+                spectator.set_transform(carla.Transform(
+                    carla.Location(x=119.048515, y=133.816574, z=7.551385), 
+                    carla.Rotation(pitch=-23.294645, yaw=-172.816132, roll=-0.000031)))
+            elif spec_id == 2:
+                spectator.set_transform(carla.Transform(
+                    carla.Location(x=95.999725, y=157.935394, z=6.279342), 
+                    carla.Rotation(pitch=-19.706659, yaw=-110.011833, roll=-0.000030)))
+        elif key == keyboard.Key.esc:
             # Stop listener
             return False
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
-world = client.get_world()
+world = client.load_world('Town01')
 
 settings = world.get_settings()
 settings.synchronous_mode = True # Enables synchronous mode
 settings.fixed_delta_seconds = 0.05
 world.apply_settings(settings)
 
-light_manager = world.get_lightmanager()
-lights = light_manager.get_all_lights()
-
-traffic_lights = []
-
-tmp_map = world.get_map()
-for landmark in tmp_map.get_all_landmarks_of_type('1000001'):
-    traffic_light = world.get_traffic_light(landmark)
-    if traffic_light:
-        traffic_lights.append(traffic_light)
-
-light_id = 10
+traffic_lights = world.get_actors().filter("traffic.traffic_light")
 
 spectator = world.get_spectator()
-spectator.set_transform(carla.Transform(traffic_lights[light_id].get_location() + carla.Location(x=10) + carla.Location(y=7) + carla.Location(z=6),
-carla.Rotation(pitch=-20, yaw = 180)))
+spectator.set_transform(carla.Transform(
+    carla.Location(x=83.918785, y=106.423500, z=6.480291), 
+    carla.Rotation(pitch=-25.652645, yaw=73.435905, roll=-0.000030)))
 
-print("------------------------------")
-print("| r : change light to red.   |")
-print("| g : change light to green. |")
-print("------------------------------")
+print(spectator.get_transform())
 
-# traffic_lights[light_id].set_red_time(5.0)
-traffic_lights[light_id].set_green_time(5.0)
-traffic_lights[light_id].set_yellow_time(2.0)
+print("--------------------------------")
+print("| tab : change perspective.    |")
+print("|  r  : change light to red.   |")
+print("|  g  : change light to green. |")
+print("--------------------------------")
+
+
+for i in range(30, 33):
+    traffic_lights[i].set_red_time(1000.0)
+    traffic_lights[i].set_green_time(5.0)
+    traffic_lights[i].set_yellow_time(0.0)
+    traffic_lights[i].set_state(carla.TrafficLightState.Red)
+
 
 listener = keyboard.Listener(
     on_press=on_press,
@@ -67,6 +88,10 @@ listener = keyboard.Listener(
 listener.start()
 
 while True:
-    traffic_lights[light_id].set_state(light_state)
-    time.sleep(0.5)
+
+    print(traffic_lights[30].get_state(), 
+          traffic_lights[31].get_state(), 
+          traffic_lights[32].get_state())
+    
+    time.sleep(0.1)
     world.tick()
