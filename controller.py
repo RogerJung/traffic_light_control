@@ -1,31 +1,34 @@
-import random
 import carla
 from pynput import keyboard
 import time
+import zenoh
+import argparse
 
 spec_id = 0
 
-def on_press(key):
+def on_press(k):
     try:
         pass
     except AttributeError:
         pass
 
-def on_release(key):
+def on_release(k):
 
     global traffic_lights
     global spectator
     global spec_id
 
+    global key
+
     try:
         print(' \r', end="")
-        if key.char == 'r':
+        if k.char == 'r':
             
             # Pub red signal to spectated light.
             traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Red)
 
             print("Set Traffic light to Red\n", end="")
-        elif key.char == 'g':
+        elif k.char == 'g':
 
             # Pub red signal to the other lights.
             for i in range(30, 33):
@@ -42,7 +45,7 @@ def on_release(key):
     except AttributeError:
 
         # Using "TAB" to change perspective.
-        if key == keyboard.Key.tab:
+        if k == keyboard.Key.tab:
             spec_id += 1
             if spec_id == 3:
                 spec_id = 0
@@ -58,9 +61,23 @@ def on_release(key):
                 spectator.set_transform(carla.Transform(
                     carla.Location(x=95.999725, y=157.935394, z=6.279342), 
                     carla.Rotation(pitch=-19.706659, yaw=-110.011833, roll=-0.000030)))
-        elif key == keyboard.Key.esc:
+        elif k == keyboard.Key.esc:
             # Stop listener
             return False
+
+
+# --- Command line argument parsing --- --- --- --- --- ---
+parser = argparse.ArgumentParser(
+    prog='z_pub',
+    description='zenoh pub traffic lights\' state')
+parser.add_argument('--key', '-k', dest='key',
+                    default='traffic_light',
+                    type=str,
+                    help='The key expression to publish onto.')
+
+
+args = parser.parse_args()
+key = args.key
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
@@ -73,17 +90,15 @@ world.apply_settings(settings)
 
 traffic_lights = world.get_actors().filter("traffic.traffic_light")
 
-world.constant_velocity_enabled = True
-
 spectator = world.get_spectator()
 spectator.set_transform(carla.Transform(
     carla.Location(x=83.918785, y=106.423500, z=6.480291), 
     carla.Rotation(pitch=-25.652645, yaw=73.435905, roll=-0.000030)))
 
-print(spectator.get_transform())
 
 print("--------------------------------")
-print("| tab : change perspective.    |")
+print("| ESC : exit controller.       |")
+print("| TAB : change perspective.    |")
 print("|  r  : change light to red.   |")
 print("|  g  : change light to green. |")
 print("--------------------------------")
@@ -116,8 +131,9 @@ def main():
         # ego_vehicle = world.spawn_actor(ego_vehicle_bp, transform)
         # ego_vehicle.set_autopilot(True)
 
-        while True:
+        while listener.is_alive():
             if synchronous_master:
+                # time.sleep(0.2)
                 world.tick()
             else:
                 world.wait_for_tick()
