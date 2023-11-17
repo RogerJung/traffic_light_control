@@ -6,17 +6,22 @@ python 3.8
 
 carla 0.9.13
 
-## Usage
-
-- Step 1:
+## Build
 ```bash=
 bash ./script/download_map.sh
 ```
-- Step 2:
+
+## Usage
+- Step 1:
 ```bash=
 ./CarlaUE4.sh -world-port=2000
 ```
-- Step 3:
+- Step 2:
 ```bash=
 python main.py
 ```
+- Step 3:
+```bash=
+python controller.py --cmd <get/set> -i <light_id> -s <light_state>
+```
+
