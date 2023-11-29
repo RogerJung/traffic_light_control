@@ -21,8 +21,8 @@ from zenoh import config, QueryTarget
 
 # --- Command line argument parsing --- --- --- --- --- ---
 parser = argparse.ArgumentParser(
-    prog='z_get',
-    description='zenoh get example')
+    prog='controller.py',
+    description='Carla traffic light controller.')
 parser.add_argument('--mode', '-m', dest='mode',
                     choices=['peer', 'client'],
                     type=str,
