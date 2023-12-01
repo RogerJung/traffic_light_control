@@ -39,15 +39,15 @@ def on_release(k):
             traffic_lights[spec_id + 30].set_state(carla.TrafficLightState.Green)
 
             print("Set Traffic light to Green\n", end="")
-        # elif key.char == '1':
-        #     print(spectator.get_transform())
+        elif k.char == '1':
+            print(f"{spectator.get_transform()}\n", end="")
 
     except AttributeError:
 
         # Using "TAB" to change perspective.
         if k == keyboard.Key.tab:
             spec_id += 1
-            if spec_id == 3:
+            if spec_id == 4:
                 spec_id = 0
             if spec_id == 0:
                 spectator.set_transform(carla.Transform(
@@ -61,6 +61,10 @@ def on_release(k):
                 spectator.set_transform(carla.Transform(
                     carla.Location(x=95.999725, y=157.935394, z=6.279342), 
                     carla.Rotation(pitch=-19.706659, yaw=-110.011833, roll=-0.000030)))
+            elif spec_id == 3:
+                spectator.set_transform(carla.Transform(
+                    carla.Location(x=92.954048, y=132.297363, z=35.752739), 
+                    carla.Rotation(pitch=-88.975876, yaw=-179.735474, roll=0.000172)))
         elif k == keyboard.Key.esc:
             # Stop listener
             return False
@@ -96,12 +100,13 @@ spectator.set_transform(carla.Transform(
     carla.Rotation(pitch=-25.652645, yaw=73.435905, roll=-0.000030)))
 
 
-print("--------------------------------")
-print("| ESC : exit controller.       |")
-print("| TAB : change perspective.    |")
-print("|  r  : change light to red.   |")
-print("|  g  : change light to green. |")
-print("--------------------------------")
+print("---------------------------------")
+print("| ESC : exit controller.        |")
+print("| TAB : change perspective.     |")
+print("|  1  : get spectator location. |")
+print("|  r  : change light to red.    |")
+print("|  g  : change light to green.  |")
+print("---------------------------------")
 
 
 for i in range(30, 33):
